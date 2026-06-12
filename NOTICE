@@ -1,0 +1,25 @@
+go-xinvoice
+Copyright 2026 andeedotnet
+
+This module includes copies of, and data derived from, the official XRechnung
+3.0.2 artifacts published by KoSIT (Koordinierungsstelle für IT-Standards) on
+behalf of xeinkauf.de, namely:
+
+  - the XRechnung semantic model (SeMoX), used to derive the German rule/field
+    texts and the BT/BG terms each rule constrains;
+  - the EN16931 validation artifacts and the XRechnung validation Schematron,
+    used to derive the English rule texts, rule identifiers and severities;
+  - the XRechnung visualization localization files, used to derive German and
+    English business-term labels;
+  - the XRechnung test suite, a curated subset of whose invoice instances is
+    bundled under testdata/ for round-trip and validation tests.
+
+Those artifacts are licensed under the Apache License, Version 2.0.
+See https://xeinkauf.de/xrechnung/ and https://github.com/itplr-kosit.
+
+Verbatim copies of the specific source artifacts used for code generation are
+bundled under internal/gen/resources/ (see that directory's README for the file
+list and provenance); data derived from them is compiled into the
+internal/catalog package; and a subset of the test suite instances is bundled
+under testdata/. This NOTICE provides the attribution that the Apache-2.0
+license requires for all of these, and must be retained in redistributions.

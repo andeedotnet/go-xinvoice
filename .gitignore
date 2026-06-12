@@ -1,0 +1,21 @@
+# Binaries (stray `go build` outputs are named after their package dir)
+/bin/
+/dist/
+/xinvoice
+/gen
+*.exe
+
+# Test / coverage artifacts
+*.out
+coverage.*
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# The full upstream KoSIT bundle is kept locally for development (full test suite
+# + regenerating the catalog) but is not part of the published module. Generation
+# uses internal/gen/resources/ and tests fall back to testdata/.
+/knowledge/
