@@ -45,7 +45,9 @@ type Rule struct {
 }
 
 // Text returns the rule message in the requested language ("de"/"en"), falling
-// back to the other language when the preferred one is unavailable.
+// back to the other language when the preferred one is unavailable. For English,
+// the curated brDEEnglish translations cover the German-only BR-DE rules before
+// falling back to the German text.
 func (r Rule) Text(lang string) string {
 	if lang == "de" {
 		if r.DE != "" {
@@ -55,6 +57,9 @@ func (r Rule) Text(lang string) string {
 	}
 	if r.EN != "" {
 		return r.EN
+	}
+	if v := brDEEnglish[r.ID]; v != "" {
+		return v
 	}
 	return r.DE
 }

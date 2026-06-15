@@ -27,3 +27,18 @@ func TestJSONIncludesLocationLabel(t *testing.T) {
 		t.Errorf("expected the BT-1 label (Invoice number) in the English output")
 	}
 }
+
+// TestBRDEEnglishFallback checks that German-only BR-DE rules render in English
+// via the curated translations (e.g. BR-DE-15 for the missing BT-10).
+func TestBRDEEnglishFallback(t *testing.T) {
+	en, err := Validate(&model.Invoice{}).JSON("en")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(en, []byte("muss übermittelt werden")) {
+		t.Errorf("English output still contains German BR-DE text:\n%s", en)
+	}
+	if !bytes.Contains(en, []byte("Element BT-10 must be provided")) {
+		t.Errorf("expected English BR-DE-15 text in the output")
+	}
+}
