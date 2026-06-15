@@ -43,11 +43,12 @@ func (r *Result) Valid() bool {
 // ("de" or "en").
 func (r *Result) JSON(lang string) ([]byte, error) {
 	type finding struct {
-		Rule     string `json:"rule"`
-		Severity string `json:"severity"`
-		Location string `json:"location,omitempty"`
-		Message  string `json:"message"`
-		Detail   string `json:"detail,omitempty"`
+		Rule          string `json:"rule"`
+		Severity      string `json:"severity"`
+		Location      string `json:"location,omitempty"`
+		LocationLabel string `json:"locationLabel,omitempty"`
+		Message       string `json:"message"`
+		Detail        string `json:"detail,omitempty"`
 	}
 	out := struct {
 		Valid    bool      `json:"valid"`
@@ -61,8 +62,16 @@ func (r *Result) JSON(lang string) ([]byte, error) {
 				msg = t
 			}
 		}
+		// Resolve the BT/BG term label (e.g. BT-10 -> "Käuferreferenz") so callers
+		// can show what the location field is.
+		label := ""
+		if f.Location != "" {
+			if l, ok := catalog.LookupLabel(f.Location); ok {
+				label = l.Text(lang)
+			}
+		}
 		out.Findings = append(out.Findings, finding{
-			Rule: f.Rule, Severity: string(f.Severity), Location: f.Location, Message: msg, Detail: f.Detail,
+			Rule: f.Rule, Severity: string(f.Severity), Location: f.Location, LocationLabel: label, Message: msg, Detail: f.Detail,
 		})
 	}
 	return json.MarshalIndent(out, "", "  ")
