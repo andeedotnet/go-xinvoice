@@ -74,6 +74,8 @@ Initial release.
 - Embedded rule/label/code-list catalog generated from the official KoSIT
   sources (`go generate ./internal/catalog`).
 
+[0.1.4]: https://github.com/andeedotnet/go-xinvoice/releases/tag/v0.1.4
+[0.1.3]: https://github.com/andeedotnet/go-xinvoice/releases/tag/v0.1.3
 [0.1.2]: https://github.com/andeedotnet/go-xinvoice/releases/tag/v0.1.2
 [0.1.1]: https://github.com/andeedotnet/go-xinvoice/releases/tag/v0.1.1
 [0.1.0]: https://github.com/andeedotnet/go-xinvoice/releases/tag/v0.1.0

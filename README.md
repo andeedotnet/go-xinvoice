@@ -18,9 +18,9 @@ It provides three things:
 The library is pure Go with no XSLT/Java runtime dependency. See
 [Validation coverage](#validation-coverage) for how it relates to the official KoSIT validator.
 
-> Status: **v0.1.0** — early but usable; conversion is complete, validation coverage
-> grows incrementally (254/329 rules). APIs may still change before v1.0. See
-> [`TODO.md`](./TODO.md) and [`CHANGELOG.md`](./CHANGELOG.md).
+> Status: **v0.1.4** — early but usable; conversion is complete, validation coverage
+> grows incrementally (254/329 rules, the rest documented out-of-scope). APIs may
+> still change before v1.0. See [`TODO.md`](./TODO.md) and [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Install
 
@@ -47,6 +47,27 @@ result := xinvoice.ValidateXML(xmlBytes)
 deJSON, err := result.JSON("de")
 enJSON, err := result.JSON("en")
 ```
+
+Each finding carries the rule id, severity, the EN16931 location (BT/BG identifier) plus its
+localized term label, and the official rule text:
+
+```json
+{
+  "valid": false,
+  "findings": [
+    {
+      "rule": "BR-DE-15",
+      "severity": "error",
+      "location": "BT-10",
+      "locationLabel": "Buyer reference",
+      "message": "Element BT-10 must be provided."
+    }
+  ]
+}
+```
+
+The German national rules (`BR-DE-*`), whose official texts exist only in German, carry curated
+English texts — so `"en"` output is fully English across all rule families.
 
 ## CLI
 
@@ -81,8 +102,9 @@ one rule set covers both UBL and CII. Rule messages and code lists are derived f
 they match the official wording.
 
 Coverage grows incrementally. Every implemented rule is verified two ways against the official testsuite:
-all 86 valid instances must produce **no false-positive errors**, and per-rule invalid fixtures must
-trigger. For authoritative, 100 %-complete validation, cross-check against the official KoSIT validator.
+all valid instances must produce **no false-positive errors** (80 non-extension instances: 40 UBL +
+40 CII), and per-rule invalid fixtures must trigger. For authoritative, 100 %-complete validation,
+cross-check against the official KoSIT validator.
 
 
 ## Rule coverage & why some rules are out of scope
@@ -149,16 +171,21 @@ BR-DE-18 is the skonto free-text format (a regex over BT-20); BR-DE-23/24/25 are
 account-detail rules; BR-DE-12 is a post-code format check; BR-DE-14 is covered structurally by BR-48;
 BR-DE-29 is deprecated (replaced by PEPPOL-EN16931-R061). Doable with more work; not yet verified.
 
-For authoritative, 100 %-complete validation, cross-check against the official KoSIT validator (the
-README states this).
+For authoritative, 100 %-complete validation, cross-check against the official KoSIT validator.
 
 ## Notes / decisions
 - Validation is reimplemented natively in Go (no XSLT-2.0 runtime); it runs against the syntax-neutral
   model and is verified clean on the 80 valid non-extension testsuite instances (40 UBL + 40 CII; the
-  full suite is 86). The README states coverage honestly vs. the official KoSIT validator.
+  full suite is 86).
 - JSON shape = syntax-neutral EN16931 semantic model; one JSON document maps to both UBL and CII.
 - Rule texts are keyed by rule id: German from the SeMoX model XML; English from the EN16931 `*.xsl`
-  and the PEPPOL `*.sch`. Code lists come from the BR-CL-* membership tests in the EN16931 XSL.
+  and the PEPPOL `*.sch`; the German-only `BR-DE-*` texts have curated English translations. Code
+  lists come from the BR-CL-* membership tests in the EN16931 XSL.
+- `Decimal` values are length-capped (40 characters) at every parse boundary and inside the arithmetic
+  choke point: unbounded or huge-exponent decimals would otherwise drive the validator's exact
+  `big.Rat` arithmetic into super-linear time — a denial-of-service vector from untrusted documents.
+- The untrusted-input parsers are fuzzed (`FuzzParseXML`, `FuzzFromJSON`, seeded from the testsuite);
+  CI runs a fuzz smoke pass and `govulncheck` on every push.
 - The official KoSIT bundle (<https://xeinkauf.de/xrechnung/versionen-und-bundles/>) is the source of
   truth. For full test-suite runs or catalog regeneration against the complete bundle, download it into
   a local `knowledge/` directory (git-ignored, not published); otherwise the generator embeds
