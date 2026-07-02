@@ -225,26 +225,6 @@ func categoryBasis(inv *model.Invoice, code string, rate model.Percentage) *big.
 
 func ratesEqual(a, b model.Percentage) bool { return rat(a).Cmp(rat(b)) == 0 }
 
-func categoriesUsed(inv *model.Invoice) map[string]bool {
-	used := map[string]bool{}
-	for i := range inv.Lines {
-		if c := inv.Lines[i].VAT.CategoryCode; c != "" {
-			used[c] = true
-		}
-	}
-	for i := range inv.Allowances {
-		if c := inv.Allowances[i].VATCategoryCode; c != "" {
-			used[c] = true
-		}
-	}
-	for i := range inv.Charges {
-		if c := inv.Charges[i].VATCategoryCode; c != "" {
-			used[c] = true
-		}
-	}
-	return used
-}
-
 // categoriesBySource returns the set of VAT category codes used in lines,
 // document allowances and document charges respectively.
 func categoriesBySource(inv *model.Invoice) (lines, allowances, charges map[string]bool) {

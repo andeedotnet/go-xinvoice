@@ -42,5 +42,7 @@ func within(expected, actual, tol *big.Rat) bool {
 	return diff.Cmp(tol) <= 0
 }
 
-// f2 formats a rat as a 2-decimal string for finding details.
+// f2 formats a rat as a 2-decimal string for finding details. It is for
+// human-readable messages only: magnitudes below 0.005 round to "0.00", so it
+// must not be used where the exact value matters (comparisons use *big.Rat).
 func f2(r *big.Rat) string { return r.FloatString(2) }

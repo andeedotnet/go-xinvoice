@@ -38,7 +38,20 @@ jobs:
         # and round-trip verification and CI would still go green.
         env:
           XINVOICE_REQUIRE_TESTSUITE: "1"
-        run: go test -race ./...
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: coverage summary
+        run: go tool cover -func=coverage.out | tail -1
+
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+      - name: fuzz smoke
+        # Short live fuzz run of the untrusted-input parsers on top of the seed
+        # corpus that the normal test run already exercises. A crasher fails CI.
+        run: |
+          go test -run '^$' -fuzz='^FuzzParseXML$' -fuzztime=30s .
+          go test -run '^$' -fuzz='^FuzzFromJSON$' -fuzztime=30s .
 
       - name: generated catalog is up to date
         run: |

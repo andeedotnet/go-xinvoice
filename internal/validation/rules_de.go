@@ -139,14 +139,20 @@ func countDigits(s string) int {
 	return n
 }
 
-// validEmail does a minimal plausibility check (one "@" with non-empty parts and
-// a dotted domain).
+// validEmail does a minimal plausibility check: a non-empty local part, an "@",
+// and a dotted domain whose dot separates two non-empty labels (so "a@b." and
+// "a@.b" are rejected). It is deliberately lax — full RFC 5322 validation is out
+// of scope for a BT-43 plausibility warning; this only rejects clearly-malformed
+// addresses.
 func validEmail(s string) bool {
 	at := strings.IndexByte(s, '@')
-	if at <= 0 || at == len(s)-1 {
+	if at <= 0 || at >= len(s)-1 {
 		return false
 	}
-	return strings.Contains(s[at+1:], ".")
+	domain := s[at+1:]
+	dot := strings.LastIndexByte(domain, '.')
+	// A dot must exist and be neither the first nor the last character.
+	return dot > 0 && dot < len(domain)-1
 }
 
 // directDebit returns the direct-debit information (BG-19) if present.

@@ -129,10 +129,17 @@ func rulesFormat(inv *model.Invoice, rp *reporter) {
 var creditTransferMeans = map[string]bool{"30": true, "58": true, "31": true}
 
 // periodOK reports whether a period's end is on or after its start (or either is
-// absent). Dates are ISO "YYYY-MM-DD", so string order is chronological.
+// absent). Dates are parsed (ISO "YYYY-MM-DD") and compared chronologically; if
+// a value does not parse — e.g. a malformed date reaching this via the raw XML
+// path — it falls back to the lexical ISO order rather than misbehave silently.
 func periodOK(start, end model.Date) bool {
 	if start == "" || end == "" {
 		return true
 	}
-	return string(start) <= string(end)
+	s, errS := start.Time()
+	e, errE := end.Time()
+	if errS != nil || errE != nil {
+		return string(start) <= string(end)
+	}
+	return !e.Before(s)
 }

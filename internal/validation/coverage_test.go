@@ -27,7 +27,7 @@ var outOfScope = []struct{ prefix, reason string }{
 	{"BR-CO-6", "charge reason code↔reason type equivalence (no mapping table)"},
 	{"BR-CO-7", "line allowance reason code↔reason type equivalence"},
 	{"BR-CO-8", "line charge reason code↔reason type equivalence"},
-	{"BR-DE-12", "post code format check"},
+	{"BR-DE-12", "SeMoX model only (no schematron assertion); BT-78 post-code presence is already covered by BR-DE-11 and cannot be verified independently"},
 	{"BR-DE-14", "covered structurally by BR-48 (VAT rate present)"},
 	{"BR-DE-18", "skonto free-text format (regex over BT-20)"},
 	{"BR-DE-23", "payment-means-conditional account-detail rules"},

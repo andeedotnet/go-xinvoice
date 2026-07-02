@@ -94,6 +94,8 @@ func TestRulesFireOnViolations(t *testing.T) {
 		{"missing buyer reference", "BR-DE-15", func(i *model.Invoice) { i.BuyerReference = "" }},
 		{"missing payment instructions", "BR-DE-1", func(i *model.Invoice) { i.PaymentInstructions = nil }},
 		{"missing seller contact", "BR-DE-2", func(i *model.Invoice) { i.Seller.Contact = nil }},
+		{"seller phone implausible", "BR-DE-27", func(i *model.Invoice) { i.Seller.Contact.Phone = "12" }},
+		{"seller email implausible", "BR-DE-28", func(i *model.Invoice) { i.Seller.Contact.Email = "not-an-email" }},
 		{"missing business process", "PEPPOL-EN16931-R001", func(i *model.Invoice) { i.BusinessProcessType = "" }},
 		{"missing seller e-address", "PEPPOL-EN16931-R020", func(i *model.Invoice) { i.Seller.ElectronicAddress = nil }},
 
@@ -154,6 +156,21 @@ func TestRulesFireOnViolations(t *testing.T) {
 				t.Errorf("expected rule %s to fire after %q", c.rule, c.name)
 			}
 		})
+	}
+}
+
+func TestValidEmailPlausibility(t *testing.T) {
+	valid := []string{"a@b.de", "john.doe@example.com", "x@sub.example.co.uk"}
+	invalid := []string{"", "plain", "a@b", "a@b.", "a@.b", "@b.de", "a@", "no-at.example.com"}
+	for _, e := range valid {
+		if !validEmail(e) {
+			t.Errorf("validEmail(%q) = false, want true", e)
+		}
+	}
+	for _, e := range invalid {
+		if validEmail(e) {
+			t.Errorf("validEmail(%q) = true, want false", e)
+		}
 	}
 }
 

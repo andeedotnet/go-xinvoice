@@ -4,6 +4,27 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-07-02
+
+### Added
+- Fuzz tests for the XML and JSON parsers (`FuzzParseXML`, `FuzzFromJSON`),
+  seeded from the committed testsuite instances. CI now also runs `govulncheck`,
+  a short live fuzz-smoke pass over the parsers, and reports coverage.
+- Negative unit tests for the BR-DE-27 / BR-DE-28 seller-contact plausibility
+  warnings (previously untested), plus a focused `validEmail` test.
+
+### Changed
+- Tightened the BR-DE-28 e-mail plausibility check to reject clearly-malformed
+  addresses such as `a@b.` and `a@.b` (empty domain label around the dot).
+- `periodOK` now compares dates chronologically (parsed via `Date.Time()`) with a
+  lexical fallback, instead of relying solely on ISO string order.
+- Clarified the out-of-scope reason for BR-DE-12 (it exists only in the SeMoX
+  model with no schematron assertion and is subsumed by BR-DE-11 on BT-78, so it
+  cannot be verified independently).
+
+### Removed
+- Dead `categoriesUsed` helper in the VAT rules (never called).
+
 ## [0.1.3] - 2026-07-02
 
 ### Security

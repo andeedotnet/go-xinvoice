@@ -13,7 +13,8 @@ implemented nor listed, with a reason, in its `outOfScope` set).
 - [x] UN/CEFACT CII D16B read + write — `internal/cii`
 - [x] Auto-detection of UBL vs CII on parse
 - [x] Cross-syntax round-trip verified — `internal/cii/equivalence_test.go`
-- [ ] Extension / sub-invoice-line (BG-DEX) modelling — currently skipped on parse
+- [x] Extension / sub-invoice-line (BG-DEX) modelling — UBL read + write + round-trip
+      (`internal/ubl`); CII omits sub-lines by design (UBL-only extension)
 
 ## Validation coverage
 
