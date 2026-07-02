@@ -78,6 +78,21 @@ func ParseXML(b []byte) (*Invoice, error) {
 
 var decimalRe = regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 
+// maxDecimalLen bounds the character length of a Decimal. The longest amount or
+// quantity in real EN16931 instances is ~21 characters, so this cap is far
+// above any legitimate value. It exists to stop pathological inputs — a field
+// carrying millions of digits — from driving the *big.Rat arithmetic in the
+// validator into super-linear time and large allocations (a denial-of-service
+// vector reachable from any parsed document). Combined with decimalRe (which
+// forbids exponent notation), it also blocks huge-exponent forms such as
+// "1E1000000" that a raw XML value could otherwise carry.
+const maxDecimalLen = 40
+
+// validDecimal reports whether s is a well-formed decimal within the length cap.
+func validDecimal(s string) bool {
+	return len(s) <= maxDecimalLen && decimalRe.MatchString(s)
+}
+
 // Decimal is an exact decimal number held in its lexical form (so trailing
 // zeros such as "1000.00" are preserved). It marshals to JSON as a number and
 // unmarshals from either a JSON number or a JSON string. The empty Decimal
@@ -94,16 +109,18 @@ type Percentage = Decimal
 
 // ParseDecimal validates s and returns it as a [Decimal].
 func ParseDecimal(s string) (Decimal, error) {
-	if !decimalRe.MatchString(s) {
+	if !validDecimal(s) {
 		return "", fmt.Errorf("xinvoice: %q is not a valid decimal", s)
 	}
 	return Decimal(s), nil
 }
 
 // Rat returns the exact value as a *big.Rat. The bool reports whether the
-// Decimal held a parseable value (false for the empty Decimal).
+// Decimal held a parseable value (false for the empty Decimal, and for any
+// value that fails validDecimal — including over-long or exponent forms, which
+// are rejected here so the validator's arithmetic never operates on them).
 func (d Decimal) Rat() (*big.Rat, bool) {
-	if d == "" {
+	if !validDecimal(string(d)) {
 		return nil, false
 	}
 	r := new(big.Rat)
@@ -119,7 +136,7 @@ func (d Decimal) MarshalJSON() ([]byte, error) {
 	if d == "" {
 		return []byte("null"), nil
 	}
-	if !decimalRe.MatchString(string(d)) {
+	if !validDecimal(string(d)) {
 		return nil, fmt.Errorf("xinvoice: %q is not a valid decimal", string(d))
 	}
 	return []byte(d), nil
@@ -136,7 +153,7 @@ func (d *Decimal) UnmarshalJSON(b []byte) error {
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
 		s = s[1 : len(s)-1]
 	}
-	if !decimalRe.MatchString(s) {
+	if !validDecimal(s) {
 		return fmt.Errorf("xinvoice: %q is not a valid decimal", s)
 	}
 	*d = Decimal(s)

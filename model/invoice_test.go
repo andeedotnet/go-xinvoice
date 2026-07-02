@@ -225,6 +225,40 @@ func TestDecimalValidation(t *testing.T) {
 	}
 }
 
+// TestDecimalLengthGuard verifies that over-long and exponent-form decimals are
+// rejected everywhere a Decimal enters arithmetic or parsing. Without the cap,
+// a value with millions of digits (or a huge exponent that only the raw XML
+// path can carry) drives big.Rat into super-linear time — a DoS reachable from
+// any parsed document. See maxDecimalLen.
+func TestDecimalLengthGuard(t *testing.T) {
+	huge := strings.Repeat("9", 5_000_000)      // 5M digits, passes the shape regex
+	exp := "1E1000000"                          // huge-exponent form (XML-only path)
+	atCap := strings.Repeat("9", maxDecimalLen) // longest still-accepted value
+
+	// ParseDecimal / JSON boundary must reject the over-long value.
+	if _, err := ParseDecimal(huge); err == nil {
+		t.Error("ParseDecimal accepted a 5M-digit value")
+	}
+	var d Decimal
+	if err := json.Unmarshal([]byte(huge), &d); err == nil {
+		t.Error("Decimal.UnmarshalJSON accepted a 5M-digit value")
+	}
+
+	// Rat() is the arithmetic choke point for both the JSON and the raw XML
+	// paths; it must refuse both vectors without invoking big.Rat.SetString on
+	// them (returning ok=false, which the validator treats as zero).
+	for _, bad := range []string{huge, exp} {
+		if _, ok := Decimal(bad).Rat(); ok {
+			t.Errorf("Rat() accepted pathological value %.12q…", bad)
+		}
+	}
+
+	// A value exactly at the cap is still valid (no legitimate value is that long).
+	if _, err := ParseDecimal(atCap); err != nil {
+		t.Errorf("ParseDecimal rejected a value at the length cap: %v", err)
+	}
+}
+
 func TestDateValidation(t *testing.T) {
 	var d Date
 	if err := json.Unmarshal([]byte(`"2024-13-01"`), &d); err == nil {

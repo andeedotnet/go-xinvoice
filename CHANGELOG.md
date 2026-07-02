@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-07-02
+
+### Security
+- Bounded the length of `Decimal` values (max 40 characters — real EN16931
+  amounts and quantities are ≤ 21). Without the cap, a field carrying millions
+  of digits, or a huge-exponent form such as `1E1000000` that the raw XML path
+  could carry, drove the validator's `big.Rat` arithmetic into super-linear
+  time (a single ~15 MB decimal took ~2 minutes) — a denial-of-service vector
+  reachable from any parsed document via `Validate` / `ValidateXML`. The cap is
+  enforced at the parse boundaries (`ParseDecimal`, JSON marshal/unmarshal) and,
+  crucially, inside `Decimal.Rat()` — the single choke point every arithmetic
+  rule passes through — so both the JSON and the XML code paths are covered.
+  Over-long or exponent values are now rejected (treated as zero by the
+  validator) instead of being multiplied.
+
 ## [0.1.2] - 2026-06-15
 
 ### Added
